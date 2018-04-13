@@ -96,10 +96,13 @@ class SelectorBIC(ModelSelector):
             except: #if the hmmlearn library cannot train or score the model
                 pass
         #now see which number of hidden states gave the smallest BIC
-        optimal_num_hidden_states = hidden_states[BIC.index(min(BIC))]
-        optimal_hmm_model = GaussianHMM(n_components = optimal_num_hidden_states, covariance_type="diag", n_iter=1000,
-                                random_state = self.random_state, verbose = False).fit(self.X, self.lengths)
-        return optimal_hmm_model
+        try:
+            optimal_num_hidden_states = hidden_states[BIC.index(min(BIC))]
+            optimal_hmm_model = GaussianHMM(n_components = optimal_num_hidden_states, covariance_type="diag", n_iter=1000,
+                                    random_state = self.random_state, verbose = False).fit(self.X, self.lengths)
+            return optimal_hmm_model
+        except ValueError: #if the hmmlearn library cannot train a single model for all possible number of hidden states
+            pass
 
 
 class SelectorDIC(ModelSelector):
@@ -114,13 +117,11 @@ class SelectorDIC(ModelSelector):
 
     def select(self):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
-
         # TODO implement model selection based on DIC scores
         DIC = [] #track the DIC
         hidden_states = [] #track the number of hidden_states
         rest_words = list(self.words) #list
         rest_words.remove(self.this_word)
-        print(self.this_word)
         for num_hidden_states in range(self.min_n_components, self.max_n_components + 1): #for each possible number of hidden states
             try: #if the hmmlearn library can train or score the model
                 rest_logL = 0
@@ -137,12 +138,15 @@ class SelectorDIC(ModelSelector):
                 DIC.append(logL - rest_logL / rest_num_scorable_words)
                 hidden_states.append(num_hidden_states)
             except: #if the hmmlearn library cannot train or score the model
-                print(num_hidden_states)
+                pass
         #now see which number of hidden states gave the largest DIC
-        optimal_num_hidden_states = hidden_states[DIC.index(max(DIC))]
-        optimal_hmm_model = GaussianHMM(n_components = optimal_num_hidden_states, covariance_type="diag", n_iter=1000,
-                                random_state = self.random_state, verbose = False).fit(self.X, self.lengths)
-        return optimal_hmm_model
+        try:
+            optimal_num_hidden_states = hidden_states[DIC.index(max(DIC))]
+            optimal_hmm_model = GaussianHMM(n_components = optimal_num_hidden_states, covariance_type="diag", n_iter=1000,
+                                    random_state = self.random_state, verbose = False).fit(self.X, self.lengths)
+            return optimal_hmm_model
+        except ValueError: #if the hmmlearn library cannot train a single model for all possible number of hidden states
+            pass
 
 
 class SelectorCV(ModelSelector):
@@ -182,7 +186,10 @@ class SelectorCV(ModelSelector):
             except: #if the hmmlearn library cannot train or score the model
                 pass
         #now see which number of hidden states gave the largest likelihood
-        optimal_num_hidden_states = hidden_states[likelihoods.index(max(likelihoods))]
-        optimal_hmm_model = GaussianHMM(n_components = optimal_num_hidden_states, covariance_type="diag", n_iter=1000,
-                                random_state = self.random_state, verbose = False).fit(self.X, self.lengths)
-        return optimal_hmm_model
+        try:
+            optimal_num_hidden_states = hidden_states[likelihoods.index(max(likelihoods))]
+            optimal_hmm_model = GaussianHMM(n_components = optimal_num_hidden_states, covariance_type="diag", n_iter=1000,
+                                    random_state = self.random_state, verbose = False).fit(self.X, self.lengths)
+            return optimal_hmm_model
+        except ValueError: #if the hmmlearn library cannot train a single model for all possible number of hidden states
+            pass
